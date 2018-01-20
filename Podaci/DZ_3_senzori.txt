@@ -1,0 +1,10 @@
+id;naziv;tip: 0 - vanjski, 1 - unutarnji, 2 - vanjski i unutarnji;vrsta: 0=od-do cjelobrojno, 1=od-do razlomljeno 1 decimala, 2=od-do razlomljeno 5 decimala, 3=0(ne) ili 1(da);min vrijednost;max vrijednost;komentar
+10;vanjska temperatura;0;1;-40.0;60.0;C
+11;unutarnja temperatura;1;1;0.0;40.0;C
+12;vlaga;2;0;0;100;%
+13;dim;1;3;0;1;
+14;prepreka;2;3;0;1;
+15;svjetlo;2;3;0;1;
+16;kontakt;2;3;0;1;
+17;vjetar;0;1;0.0;200.0;km/h
+18;smjer vjetra;0;1;0;8;0 - nema; 1 - S, 2 - SI, 3 - I, 4 - JI, 5 - J, 6 - JZ, 7 - Z, 8 - SZ

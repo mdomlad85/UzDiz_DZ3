@@ -1,0 +1,8 @@
+id;naziv;tip: 0 - vanjski, 1 - unutarnji;broj senzora;broj aktuatora
+1;FOI 1 - ulazna vrata;1;2;1
+2;FOI 1 - dvorišna vrata;1;2;1
+3;FOI 1 - parkiralište;0;7;2
+4;FOI 1 - vijećnica;1;5;4
+5;FOI 1 - knjižnica;1;4;3
+6;FOI 1 - dvorana 1;1;6;1
+7;FOI 1 - sistem sala;1;5;3
