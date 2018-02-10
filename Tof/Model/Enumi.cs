@@ -22,4 +22,23 @@
         HIBRIDNI = 2
 
     }
+    enum ExitCode : int
+    {
+        Success = 0,
+        InvalidLogin = 1,
+        InvalidFilename = 2,
+        UnknownError = 10
+    }
+
+    public enum VrstaRasporeda : int
+    {
+        RasporedUredjajaPoMjestima = 0,
+        RasporedUredjajaPoAktuatorima = 1
+    }
+
+    public enum VrstaUredjaja : int
+    {
+        Aktuator = 1,
+        Senzor = 0
+    }
 }

@@ -79,5 +79,25 @@ namespace Tof.Nasumicnjak
 
             return broj;
         }
+
+        public double DajSlucajniBroj(double odBroja, double doBroja)
+        {
+            double broj = odBroja;
+            if (odBroja < doBroja)
+            {
+                broj = _rnd.Next((int)Math.Floor(odBroja), (int)doBroja);
+            }
+            else
+            {
+                broj = _rnd.Next((int)Math.Floor(doBroja), (int)odBroja);
+            }
+
+            do
+            {
+                broj += _rnd.NextDouble();
+            } while (broj > odBroja && broj < doBroja);
+
+            return broj;
+        }
     }
 }

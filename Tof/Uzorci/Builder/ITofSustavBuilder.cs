@@ -8,7 +8,6 @@
         void UcitajPostavke(object ulazniPodaci);
         void UcitajPodatke();
         void InicijalizirajSustav();
-        void Opremi();
         TofSustav TofSUstav { get; }
     }
 }

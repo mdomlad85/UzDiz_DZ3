@@ -10,11 +10,13 @@ namespace Tof.Logger
         WARNING = 3,
         ERROR = 4
     }
-    interface ILogger
+    public interface ILogger
     {
         void Log(string message);
 
         void Log(string message, VrstaLogZapisa vrsta);
+
+        void Ocisti();
 
         StringBuilder PovijestLogiranja { get; }
 

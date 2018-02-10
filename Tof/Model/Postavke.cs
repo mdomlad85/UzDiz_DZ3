@@ -8,18 +8,37 @@ using Tof.Uzorci.Singleton;
 
 namespace Tof
 {
+    [Serializable]
     public class Postavke
     {
         public const string CREATOR = "mdomladov_";
         public Postavke()
         {
-            Sjeme = -1;
-            TrajanjeDretveSek = -1;
-            BrojCiklusaDretve = -1;
-            BrojLinijaIzlaza = -1;
+            BrojRedaka = 24;
+            BrojStupaca = 80;
+            BrojRedakaKomandi = 2;
+            ProsjecnaIspravnost = 50;
+            Sjeme = DateTime.Now.Millisecond + DateTime.Now.Second * 1000;
+            TrajanjeDretveSek = (new Random()).Next(1, 17);
         }
 
-        public ITesterUredjaja AlgoritamProvjere { get; set; }
+        public int BrojRedakaIspis => BrojRedaka - BrojRedakaKomandi;
+
+        [Option("br", Required = false,
+           HelpText = " broj redaka na ekranu (24-40). Ako nije upisana opcija, uzima se 24.")]
+        public int BrojRedaka { get; set; }
+
+        [Option("bs", Required = false,
+            HelpText = "broj stupaca na ekranu (80-160). Ako nije upisana opcija, uzima se 80.")]
+        public int BrojStupaca { get; set; }
+
+        [Option("brk", Required = false,
+            HelpText = "broj redaka na ekranu za unos komandi (2-5). Ako nije upisana opcija, uzima se 2.")]
+        public int BrojRedakaKomandi { get; set; }
+
+        [Option("pi", Required = false,
+            HelpText = "prosječni % ispravnosti uređaja (0-100). Ako nije upisana opcija, uzima se 50.")]
+        public int ProsjecnaIspravnost { get; set; }
 
         [Option('g', Required = false,
             HelpText = "sjeme za generator slučajnog broja (u intervalu 100 - 65535). Ako nije upisana opcija, uzima se broj milisekundi u trenutnom vremenu na bazi njegovog broja sekundi i broja milisekundi.")]
@@ -37,84 +56,17 @@ namespace Tof
           HelpText = "naziv datoteke aktuatora.")]
         public string DatotekaAktuatora { get; set; }
 
-        [Option("alg", Required = true,
-          HelpText = "puni naziv klase algoritma provjere koja se dinamički učitava.")]
-        public string AlgoritamProvjereNaziv { get; set; }
+        [Option('r', Required = true,
+          HelpText = "naziv datoteke aktuatora.")]
+        public string DatotekaRasporeda { get; set; }
 
         [Option("tcd", Required = false,
          HelpText = "trajanje ciklusa dretve u sek. Ako nije upisana opcija, uzima se slučajni broj u intervalu 1 - 17.")]
         public int TrajanjeDretveSek { get; set; }
 
-        [Option("bcd", Required = false,
-          HelpText = "broj ciklusa dretve. Ako nije upisana opcija, uzima se slučajni broj u intervalu 1 - 23.")]
-        public int BrojCiklusaDretve { get; set; }
-
-        [Option('i', Required = false,
-          HelpText = "naziv datoteke u koju se sprema izlaz programa. Ako nije upisana opcija, uzima se vlastito korisničko ime kojem se dodaje trenutni podaci vremena po formatu _ggggmmdd_hhmmss.txt npr. mdomladov_20171105_203128.txt")]
-        public string IzlaznaDatoteka { get; set; }
-
-        [Option("brl", Required = false,
-         HelpText = "broj linija u spremniku za upis u datoteku za izlaz. Ako nije upisana opcija, uzima se slučajni broj u intervalu 100 - 999.")]
-        public int BrojLinijaIzlaza { get; set; }
-
-        [HelpOption('h', "help",
-            HelpText = "Pomoć")]
-        public string DohvatiPomoc()
-        {
-            var helpText = HelpText.AutoBuild(this,
-              (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
-
-            helpText.Copyright = "mdomladov";
-            helpText.Heading = "Pomoć";
-
-            return helpText;
-        }
-
-        [Option('v', "verbose", DefaultValue = true,
-                 HelpText = "Ispiši sve poruke na standardni izlaz.")]
-        public bool Verbose { get; set; }
-
-        [ParserState]
-        public IParserState LastParserState { get; set; }
-
-        public void PopuniPredefiniraneVrijednosti()
-        {
-            if (Sjeme == -1)
-            {
-                Sjeme = new Random().Next(100, 65535);
-            }
-            AplikacijskiPomagac.Instanca.PostaviNasumicnjak(new SistemskiNasumicnjak(Sjeme));
-            
-            if(TrajanjeDretveSek == -1)
-            {
-                TrajanjeDretveSek = AplikacijskiPomagac.Instanca.Nasumicnjak.DajSlucajniBroj(1, 17);             
-            }
-
-            if (BrojCiklusaDretve == -1)
-            {
-                BrojCiklusaDretve = AplikacijskiPomagac.Instanca.Nasumicnjak.DajSlucajniBroj(1, 23);
-            }
-
-            if (BrojLinijaIzlaza == -1)
-            {
-                BrojLinijaIzlaza = AplikacijskiPomagac.Instanca.Nasumicnjak.DajSlucajniBroj(1, 17);
-            }
-
-            if (TrajanjeDretveSek == -1)
-            {
-                TrajanjeDretveSek = AplikacijskiPomagac.Instanca.Nasumicnjak.DajSlucajniBroj(1, 17);
-            }
-
-            if (string.IsNullOrWhiteSpace(IzlaznaDatoteka))
-            {
-                IzlaznaDatoteka = string.Format("{0}{1}", CREATOR, DateTime.Now.ToString("_yyyyMMdd_hhmmss"));
-            }
-        }
-
         public bool JesuPostavkeIspravne()
         {
-            return FilesExists(DatotekaAktuatora, DatotekaMjesta, DatotekaSenzora)
-                && TesterClassExists(AlgoritamProvjereNaziv);
+            return FilesExists(DatotekaAktuatora, DatotekaMjesta, DatotekaSenzora, DatotekaRasporeda);
         }
 
         private bool FilesExists(params string[] vals)
@@ -128,17 +80,31 @@ namespace Tof
             }
             return true;
         }
-        private bool TesterClassExists(string className)
+
+        private static object staticSyncLock = new object();
+
+        private static Postavke _instanca;
+
+        public static Postavke Instanca
         {
-            try
+            get
             {
-                AlgoritamProvjere = TofTvornicaTestera.Instanca.ProizvediTestera(className);
-                return true;
+                // Dvostruko zaključavanje zbog sigurnog pristupa u višedretvenom pristupu
+                if (_instanca == null)
+                {
+                    lock (staticSyncLock)
+                    {
+                        if (_instanca == null)
+                        {
+                            _instanca = new Postavke();
+                        }
+                    }
+                }
+
+                return _instanca;
             }
-            catch
-            {
-                return false;
-            }
+
         }
+        public int BrojCiklusaDretve { get; set; }
     }
 }

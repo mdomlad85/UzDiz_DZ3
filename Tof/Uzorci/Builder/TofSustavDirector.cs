@@ -20,7 +20,7 @@
             _tofBuilder.UcitajPostavke(_ulazniPodaci);
             _tofBuilder.UcitajPodatke();
             _tofBuilder.InicijalizirajSustav();
-            _tofBuilder.Opremi();
+            //_tofBuilder.Opremi();
         }
 
         public TofSustav TofSustav => _tofBuilder.TofSUstav;

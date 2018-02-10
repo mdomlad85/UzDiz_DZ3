@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Tof.Logger
 {
-    class TofLogger : ILogger
+    public class TofLogger : ILogger
     {
 
         private StringBuilder _logiranePoruke = new StringBuilder();
@@ -44,6 +44,7 @@ namespace Tof.Logger
 
         public void Log(string message)
         {
+            if (string.IsNullOrWhiteSpace(message)) return;
             lock (syncLock)
             {
                 Log(message, VrstaLogZapisa.INFO);
@@ -52,6 +53,8 @@ namespace Tof.Logger
 
         public void Log(string message, VrstaLogZapisa vrsta)
         {
+            if (string.IsNullOrWhiteSpace(message)) return;
+
             lock (syncLock)
             {
                 var strVrsta = "INFO";
@@ -75,8 +78,12 @@ namespace Tof.Logger
                 }
                 var msg = string.Format("[{0}]: {1}", strVrsta, message, DateTime.Now.ToString("g"));
                 _logiranePoruke.AppendLine(msg);
-                Console.WriteLine(msg);
             }
+        }
+
+        public void Ocisti()
+        {
+            _logiranePoruke.Clear();
         }
     }
 }

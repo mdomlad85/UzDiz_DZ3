@@ -1,5 +1,4 @@
 ﻿using CommandLine;
-using CommandLine.Text;
 using System;
 
 namespace Tof.Pomagaci
@@ -11,10 +10,8 @@ namespace Tof.Pomagaci
             var options = new Postavke();
             Action<ParserSettings> parserAction = ParserAction;
             Parser parser = new Parser(parserAction);
-            if (parser.ParseArgumentsStrict(args.ConvertArgsFlags(), options))
-            {
-                options.PopuniPredefiniraneVrijednosti();
-            }
+            parser.ParseArgumentsStrict(args.ConvertArgsFlags(), options);
+
             if (!options.JesuPostavkeIspravne())
             {
                 throw new Iznimke.NeispravniUlazniArgumenti();

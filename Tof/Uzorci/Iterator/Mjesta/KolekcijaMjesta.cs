@@ -20,6 +20,16 @@ namespace Tof.Uzorci.Iterator
             return new IteratorMjesta(this);
         }
 
+        public KolekcijaMjesta()
+        {
+
+        }
+
+        public KolekcijaMjesta(List<Mjesto> mjesta)
+        {
+            _mjesta = mjesta;
+        }
+
         public int Count
         {
             get { return _mjesta.Count; }

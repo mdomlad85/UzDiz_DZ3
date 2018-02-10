@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{4D5E758F-7C0A-4BFA-BF98-6C4D0709D87C}</ProjectGuid>
+    <ProjectGuid>{8653A1EC-932E-4568-9CFB-A683C3DF3DFE}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Tof</RootNamespace>
@@ -12,6 +12,7 @@
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -48,25 +49,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="Iznimke\NeispravnaVelicinaMeduspremnika.cs" />
     <Compile Include="Iznimke\NemaDovoljnoPodataka.cs" />
-    <Compile Include="Iznimke\PrelijevanjeMeduspremika.cs" />
-    <Compile Include="Uzorci\Builder\Dz2TofSustavBuilder.cs" />
+    <Compile Include="Iznimke\RasporedSenzoraPoAktuatorimaException.cs" />
+    <Compile Include="Iznimke\RasporedUredjajaPoMjestimaException.cs" />
+    <Compile Include="Model\Raspored.cs" />
+    <Compile Include="Model\RasporedSenzoraPoAktuatorima.cs" />
+    <Compile Include="Model\RasporedUredjajaPoMjestima.cs" />
+    <Compile Include="Model\RootElementPrototype.cs" />
+    <Compile Include="Pomagaci\ANSI_VT100_Konstante.cs" />
+    <Compile Include="Uzorci\Builder\Dz3TofSustavBuilder.cs" />
     <Compile Include="Uzorci\Builder\ITofSustavBuilder.cs" />
     <Compile Include="Uzorci\Builder\TofSustav.cs" />
     <Compile Include="Uzorci\Builder\TofSustavDirector.cs" />
-    <Compile Include="Uzorci\Composite\UredjajComponent.cs" />
-    <Compile Include="Uzorci\Composite\UredjajLeaf.cs" />
-    <Compile Include="Uzorci\Composite\UredjajComposite.cs" />
     <Compile Include="Extensions\CollectionExtensions.cs" />
     <Compile Include="Extensions\FileExtensions.cs" />
-    <Compile Include="Uzorci\Decorator\BrojLinijaBuffer.cs" />
-    <Compile Include="Uzorci\FactoryMethod\Testeri\HibridniTester.cs" />
-    <Compile Include="Uzorci\FactoryMethod\Testeri\ITesterUredjaja.cs" />
-    <Compile Include="Uzorci\FactoryMethod\Testeri\NasumicniTester.cs" />
-    <Compile Include="Uzorci\FactoryMethod\Testeri\SekvencijalniTester.cs" />
-    <Compile Include="Uzorci\FactoryMethod\Testeri\TofTvornicaTestera.cs" />
-    <Compile Include="Uzorci\FactoryMethod\Testeri\TvornicaTestera.cs" />
     <Compile Include="Uzorci\FactoryMethod\Uredjaji\IUredjajAkcija.cs" />
     <Compile Include="Uzorci\FactoryMethod\Uredjaji\TofTvornicaUredjaja.cs" />
     <Compile Include="Uzorci\FactoryMethod\Uredjaji\TvornicaUredjaja.cs" />
@@ -74,12 +70,6 @@
     <Compile Include="Uzorci\FactoryMethod\Uredjaji\UredjajCjelobrojnoIzvrsavanje.cs" />
     <Compile Include="Uzorci\FactoryMethod\Uredjaji\UredjajRazlomljeno1Izvrsavanje.cs" />
     <Compile Include="Uzorci\FactoryMethod\Uredjaji\UredjajRazlomljeno5Izvrsavanje.cs" />
-    <Compile Include="Uzorci\Iterator\ApstraktnaKolekcija.cs" />
-    <Compile Include="Uzorci\Iterator\ApstraktniIterator.cs" />
-    <Compile Include="Uzorci\Iterator\Uredjaji\IteratorUredjaja.cs" />
-    <Compile Include="Uzorci\Iterator\Uredjaji\KolekcijaUredjaja.cs" />
-    <Compile Include="Uzorci\Iterator\Mjesta\IteratorMjesta.cs" />
-    <Compile Include="Uzorci\Iterator\Mjesta\KolekcijaMjesta.cs" />
     <Compile Include="Iznimke\LosRedakIzDatoteke.cs" />
     <Compile Include="Iznimke\NeispravniUlazniArgumenti.cs" />
     <Compile Include="Iznimke\NemaDostaUredjaja.cs" />
@@ -90,6 +80,16 @@
     <Compile Include="Iznimke\NepoznatTipTestera.cs" />
     <Compile Include="Iznimke\TofSustavNijeSpreman.cs" />
     <Compile Include="Model\Enumi.cs" />
+    <Compile Include="Uzorci\Iterator\ApstraktnaKolekcija.cs" />
+    <Compile Include="Uzorci\Iterator\ApstraktniIterator.cs" />
+    <Compile Include="Uzorci\Iterator\Mjesta\IteratorMjesta.cs" />
+    <Compile Include="Uzorci\Iterator\Mjesta\KolekcijaMjesta.cs" />
+    <Compile Include="Uzorci\MVC\Base\IController.cs" />
+    <Compile Include="Uzorci\MVC\Base\IModel.cs" />
+    <Compile Include="Uzorci\MVC\Base\IView.cs" />
+    <Compile Include="Uzorci\MVC\VT100Controller.cs" />
+    <Compile Include="Uzorci\MVC\VT100Model.cs" />
+    <Compile Include="Uzorci\MVC\VT100View.cs" />
     <Compile Include="Uzorci\Singleton\MaticniPodaci.cs" />
     <Compile Include="Model\Mjesto.cs" />
     <Compile Include="Model\Postavke.cs" />
@@ -104,11 +104,6 @@
     <Compile Include="Uzorci\Singleton\AplikacijskiPomagac.cs" />
     <Compile Include="Nasumicnjak\SistemskiNasumicnjak.cs" />
     <Compile Include="Logger\TofLogger.cs" />
-    <Compile Include="Uzorci\Visitor\UredjajElement.cs" />
-    <Compile Include="Uzorci\Visitor\IUredjajVisitor.cs" />
-    <Compile Include="Uzorci\Visitor\AkcijskiVisitor.cs" />
-    <Compile Include="Uzorci\Visitor\RadniVisitor.cs" />
-    <Compile Include="Uzorci\Visitor\UredjajiObjectStructure.cs" />
     <Compile Include="Vendor\ConsoleTable.cs" />
   </ItemGroup>
   <ItemGroup>

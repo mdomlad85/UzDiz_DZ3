@@ -1,26 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using Tof.Uzorci.Iterator;
 using Tof.Model;
 using Tof.Uzorci.Singleton;
 using Tof.Logger;
+using Tof.Uzorci.Iterator;
+using System.Linq;
+using Tof.Uzorci.FactoryMethod;
+using System.Threading.Tasks;
+using Tof.Uzorci.MVC;
 
 namespace Tof.Uzorci.Builder
 {
     /// <summary>
     /// The 'Product' class
     /// </summary>
+    [Serializable]
     public class TofSustav
     {
         #region Properties
-        private KolekcijaMjesta _mjesta = new KolekcijaMjesta();
+        private List<Mjesto> _mjesta = new List<Mjesto>();
+        private List<Uredjaj> _aktuatori = new List<Uredjaj>();
+        private List<Uredjaj> _senzori = new List<Uredjaj>();
 
         private Postavke _postavke = new Postavke();
 
         private object syncLock = new object();
 
-        public KolekcijaMjesta Mjesta
+        public List<Mjesto> Mjesta
         {
             get
             {
@@ -30,11 +37,49 @@ namespace Tof.Uzorci.Builder
                 }
             }
 
-            internal set
+            set
             {
                 lock (syncLock)
                 {
                     _mjesta = value;
+                }
+            }
+        }
+
+        public List<Uredjaj> Aktuatori
+        {
+            get
+            {
+                lock (syncLock)
+                {
+                    return _aktuatori;
+                }
+            }
+
+            set
+            {
+                lock (syncLock)
+                {
+                    _aktuatori = value;
+                }
+            }
+        }
+
+        public List<Uredjaj> Senzori
+        {
+            get
+            {
+                lock (syncLock)
+                {
+                    return _senzori;
+                }
+            }
+
+            set
+            {
+                lock (syncLock)
+                {
+                    _senzori = value;
                 }
             }
         }
@@ -49,7 +94,7 @@ namespace Tof.Uzorci.Builder
                 }
             }
 
-            internal set
+            set
             {
                 lock (syncLock)
                 {
@@ -57,13 +102,15 @@ namespace Tof.Uzorci.Builder
                 }
             }
         }
+
+        public bool Zavrsio { get; set; }
         #endregion
 
-        public void Pokreni()
+        public void Pokreni(VT100Model model)
         {
-            for (int i = 0; i < Postavke.BrojCiklusaDretve; i++)
+            for (int i = 0; i < Postavke.Instanca.BrojCiklusaDretve; i++)
             {
-                var finishedCorrectly = DoHardWork();
+                var finishedCorrectly = ObradiMjesta();
                 if (finishedCorrectly)
                 {
                     AplikacijskiPomagac.Instanca.Statistika.UspjesnihCiklusa++;
@@ -75,14 +122,21 @@ namespace Tof.Uzorci.Builder
                     AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Isteklo je vrijeme u {0}. ciklusu ", i + 1), VrstaLogZapisa.DEBUG);
                 }
             }
-            AplikacijskiPomagac.Instanca.Statistika.ProsjecnoTrajanjeCiklusa /= Postavke.BrojCiklusaDretve;
+            AplikacijskiPomagac.Instanca.Statistika.ProsjecnoTrajanjeCiklusa /= Postavke.Instanca.BrojCiklusaDretve;
+            foreach (var line in AplikacijskiPomagac.Instanca.Logger.PovijestLogiranja.ToArray())
+            {
+                model._writer.PovijestLogiranja.AppendLine(line);
+            }
+            AplikacijskiPomagac.Instanca.Logger.PovijestLogiranja.Clear();
+            model.Notify();
         }
 
-        private bool DoHardWork()
+        private bool ObradiMjesta()
         {
-            Thread workerThread = new Thread(new ThreadStart(Run));
+            Thread workerThread = new Thread(new ThreadStart(Obradi));
             workerThread.Start();
             bool finished = workerThread.Join(new TimeSpan(0, 0, Postavke.TrajanjeDretveSek));
+
 
             if (!finished)
             {
@@ -93,65 +147,88 @@ namespace Tof.Uzorci.Builder
             return finished;
         }
 
-        public void Run()
+        public void Obradi()
         {
             AplikacijskiPomagac.Instanca.Logger.Log("Počinje obrada mjesta...", VrstaLogZapisa.INFO);
             var startTime = DateTime.Now;
+            var maxAkt = _aktuatori.Max(a => a.ExternalID);
+            var maxSenz = _senzori.Max(s => s.ExternalID);
+            var max = maxAkt > maxSenz ? maxAkt : maxSenz;
 
-            lock (syncLock)
+            foreach (var mjesto in _mjesta)
             {
-                lock (_mjesta)
+                AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Počinjem s obradom mjesta {0}", mjesto.Naziv), VrstaLogZapisa.INFO);
+
+                for (int i = 0; i < mjesto.Senzori.Length; i++)
                 {
-                    Postavke.AlgoritamProvjere.ProvjeriMjesta(_mjesta);
+                    var senzor = mjesto.Senzori[i];
+                    if (senzor == null) continue;
+
+                    if (!senzor.JeIspravan)
+                    {
+                        AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Senzor s ID {0} je neispravan i već je zamijenjen", senzor.ExternalID), VrstaLogZapisa.INFO);
+                        continue;
+                    }
+
+                    if (senzor.JeZdrav() == 1)
+                    {
+                        AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Senzor s ID {0} je ispravan", senzor.ExternalID), VrstaLogZapisa.INFO);
+                        senzor.OdradiPosao();
+                        AplikacijskiPomagac.Instanca.Statistika.BrojObradenihSenzora++;
+                        if (senzor.DosloDoPromjene)
+                        {
+                            for (int j = 0; j < senzor.PovezaniUredjaji.Count; j++)
+                            {
+                                var aktuator = senzor.PovezaniUredjaji[j];
+                                if (!aktuator.JeIspravan)
+                                {
+                                    AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Aktuator s ID {0} nije ispravan i već je zamijenjen", aktuator.ExternalID), VrstaLogZapisa.ERROR);
+                                    continue;
+                                }
+                                if (aktuator.JeZdrav() == 1)
+                                {
+                                    AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Aktuator s ID {0} je ispravan", aktuator.ExternalID), VrstaLogZapisa.INFO);
+                                    aktuator.OdradiPosao();
+                                    TofTvornicaUredjaja
+                                        .Instanca
+                                        .ProizvediDinamikuUredjaja(aktuator.Vrsta)
+                                        .Izvrsi(aktuator);
+                                    AplikacijskiPomagac.Instanca.Statistika.BrojObradenihAktuatora++;
+                                }
+                                else
+                                {
+                                    AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Aktuator s ID {0} nije ispravan", aktuator.ExternalID), VrstaLogZapisa.ERROR);
+                                    var noviUredjaj = (Uredjaj)aktuator.Clone();
+                                    noviUredjaj.ExternalID = ++max;
+                                    noviUredjaj.Inicijaliziraj("Zamijena");
+                                    _aktuatori.Add(noviUredjaj);
+                                    mjesto.Aktuatori[j] = noviUredjaj;
+                                    AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Aktuator s ID {0} je zamijenjen s aktuatorom ID-a: {1}", aktuator.ExternalID, noviUredjaj.ExternalID), VrstaLogZapisa.WARNING);
+                                    AplikacijskiPomagac.Instanca.Statistika.BrojZamijenjenihAktuatora++;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Senzor s ID {0} nije ispravan", senzor.ExternalID), VrstaLogZapisa.ERROR);
+                        var noviUredjaj = (Uredjaj)senzor.Clone();
+                        noviUredjaj.ExternalID = ++max;
+                        noviUredjaj.Inicijaliziraj("Zamijena");
+                        _senzori.Add(noviUredjaj);
+                        mjesto.Senzori[i] = noviUredjaj;
+                        AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Senzor s ID {0} je zamijenjen s senzorom ID-a: {1}", senzor.ExternalID, noviUredjaj.ExternalID), VrstaLogZapisa.WARNING);
+                        AplikacijskiPomagac.Instanca.Statistika.BrojZamijenjenihSenzora++;
+                    }
                 }
-                AktivirajUredjaje();
+
+                AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Završavam s obradom mjesta {0}\n", mjesto.Naziv), VrstaLogZapisa.INFO);
             }
 
             var totalSec = (DateTime.Now - startTime).TotalSeconds;
             var diff = Postavke.TrajanjeDretveSek - totalSec;
-            AplikacijskiPomagac.Instanca.Logger.Log(string.Format("...završila obrada mjesta nakon {0} sekundi", totalSec), VrstaLogZapisa.INFO);
+            AplikacijskiPomagac.Instanca.Logger.Log(string.Format("...završila obrada svih mjesta nakon {0} sekundi", totalSec), VrstaLogZapisa.INFO);
             AplikacijskiPomagac.Instanca.Statistika.ProsjecnoTrajanjeCiklusa += diff;
-        }
-
-        private void AktivirajUredjaje()
-        {
-            var iteratorMjesta = _mjesta.CreateIterator();
-            var o = new Visitor.UredjajiObjectStructure();
-            while (!iteratorMjesta.IsDone)
-            {
-                AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Počinjem s obradom mjesta {0}", iteratorMjesta.CurrentItem.Naziv), VrstaLogZapisa.INFO);
-
-                var iteratorSenzora = iteratorMjesta.CurrentItem.Senzori.CreateIterator();
-                var aktuatoriKojiSeTrebajuOkinuti = new Dictionary<int, Uredjaj>();
-                var ids = new List<int>();
-
-                while (!iteratorSenzora.IsDone)
-                {
-                    iteratorSenzora.CurrentItem.OdradiPosao();
-                    if (iteratorSenzora.CurrentItem.DosloDoPromjene)
-                    {
-                        ids.Add(iteratorSenzora.CurrentItem.ID);
-                    }
-
-                    iteratorSenzora.Next();
-                }
-
-                var iteratorAktuatora = iteratorMjesta.CurrentItem.Aktuatori.CreateIterator();
-                while (!iteratorAktuatora.IsDone)
-                {
-                    if(iteratorAktuatora.CurrentItem.PovezaniUredjaji.Find(x => ids.Contains(x.ID)) != null)
-                    {
-                        o.Attach(iteratorAktuatora.CurrentItem.ID, iteratorAktuatora.CurrentItem);
-                    }
-
-                    iteratorAktuatora.Next();
-                }
-
-                AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Završavam s obradom mjesta {0}\n", iteratorMjesta.CurrentItem.Naziv), VrstaLogZapisa.INFO);
-                iteratorMjesta.Next();
-            }
-            o.Accept(new Visitor.AkcijskiVisitor());
-            o.Accept(new Visitor.RadniVisitor());
         }
     }
 }

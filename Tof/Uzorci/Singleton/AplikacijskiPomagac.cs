@@ -6,7 +6,7 @@ using Tof.Nasumicnjak;
 
 namespace Tof.Uzorci.Singleton
 {
-    class AplikacijskiPomagac
+    public class AplikacijskiPomagac
     {
 
         private ILogger _logger;
@@ -29,20 +29,6 @@ namespace Tof.Uzorci.Singleton
         public void PostaviNasumicnjak(INasumicnjak nasumicnjak)
         {
             _nasumicnjak = nasumicnjak;
-        }
-
-        public void SpremiLog(string izlaznaDatoteka, int brojLinijaIzlaza)
-        {
-            if (File.Exists(izlaznaDatoteka))
-            {
-                File.Delete(izlaznaDatoteka);
-            }
-
-            using (StreamWriter sw = new StreamWriter(izlaznaDatoteka))
-            {
-                Uzorci.Decorator.BrojLinijaBuffer blf = new Uzorci.Decorator.BrojLinijaBuffer(sw, brojLinijaIzlaza);
-                blf.Write(_logger.PovijestLogiranja.ToString().Split(Environment.NewLine.ToCharArray()));
-            }
         }
 
         public AplikacijskiPomagac()

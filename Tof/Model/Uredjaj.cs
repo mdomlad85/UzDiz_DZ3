@@ -3,35 +3,32 @@ using System.Collections.Generic;
 using Tof.Iznimke;
 using Tof.Logger;
 using Tof.Uzorci.Singleton;
-using Tof.Uzorci.Visitor;
 
 namespace Tof.Model
 {
-    public class Uredjaj : UredjajElement
+    [Serializable]
+    public class Uredjaj : RootElementPrototype
     {
-        public string Naziv { get; set; }
-
-        public Tip Tip { get; set; }
-
         public Vrsta Vrsta { get; set; }
 
         public string Komentar { get; set; }
         public List<Uredjaj> PovezaniUredjaji = new List<Uredjaj>();
 
-        public Uredjaj()
+        public Uredjaj() : base("Tof.Model.Uredjaj")
         {
         }
 
-        public Uredjaj(string[] attrs)
+        public Uredjaj(string[] attrs) : base("Tof.Model.Uredjaj")
         {
             try
             {
-                Naziv = attrs[0];
-                Tip = (Tip)int.Parse(attrs[1]);
-                Vrsta = (Vrsta)int.Parse(attrs[2]);
-                Min = double.Parse(attrs[3].Replace('.', ','));
-                Max = double.Parse(attrs[4].Replace('.', ','));
-                Komentar = attrs[5];
+                ID = int.Parse(attrs[0]);
+                Naziv = attrs[1];
+                Tip = (Tip)int.Parse(attrs[2]);
+                Vrsta = (Vrsta)int.Parse(attrs[3]);
+                Min = double.Parse(attrs[4].Replace('.', ','));
+                Max = double.Parse(attrs[5].Replace('.', ','));
+                Komentar = attrs[6];
                 TrenutnaVrijednost = Min;
             }
             catch
@@ -64,6 +61,10 @@ namespace Tof.Model
         /// </summary>
         public double TrenutnaVrijednost { get; set; }
 
+        public int ExternalID { get; set; }
+
+        public int MjestoID { get; set; }
+
         /// <summary>
         /// Ako je vrijednost istinita onda ide od max prema min, vrijedi i obrat tvrdnje
         /// </summary>
@@ -75,8 +76,6 @@ namespace Tof.Model
         private bool _dosloDoPromjene;
 
         public bool JeIspravan => _jeIspravan;
-
-        public int ID { get; internal set; }
 
         public int JeZdrav(int maxNezdrav = 3)
         {
@@ -94,7 +93,7 @@ namespace Tof.Model
                     {
                         _jeIspravan = false;
                     }
-                    return 0;
+                    return _jeIspravan ? 1 : 0;
                 }
             }
             return 0;
@@ -106,9 +105,9 @@ namespace Tof.Model
             AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Vrijednost {0} je {1} {2}", Naziv, TrenutnaVrijednost, Komentar));
         }
 
-        public override void Accept(IUredjajVisitor visitor)
+        public override RootElementPrototype Clone()
         {
-            visitor.Visit(this);
+            return (Uredjaj)this.MemberwiseClone();
         }
     }
 }

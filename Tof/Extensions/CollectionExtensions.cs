@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using Tof.Uzorci.Iterator;
 using Tof.Iznimke;
 using Tof.Model;
 using Tof.Uzorci.Singleton;
+using System.Linq;
 
 namespace Tof
 {
@@ -27,12 +27,12 @@ namespace Tof
             }
             return args;
         }
-        public static Uredjaj Zamijeni(this KolekcijaUredjaja uredjaji, Uredjaj pokvarenUredjaj, KolekcijaUredjaja zamjenskiUredjaji)
+        public static Uredjaj Zamijeni(this Uredjaj[] uredjaji, Uredjaj pokvarenUredjaj, List<Uredjaj> zamjenskiUredjaji)
         {
-            var pokvareniIndex = uredjaji.IndexOd(pokvarenUredjaj);
+            var pokvareniIndex = uredjaji.ToList().IndexOf(pokvarenUredjaj);
             if (pokvareniIndex != -1)
             {
-                var max = zamjenskiUredjaji.DohvatiPoTipu(pokvarenUredjaj.Tip).Count - 1;
+                var max = zamjenskiUredjaji.Where(x => x.Tip == pokvarenUredjaj.Tip).Count() - 1;
 
                 var zamjenskiUredjaj = pokvarenUredjaj;
 
@@ -45,11 +45,24 @@ namespace Tof
 
                     zamjenskiUredjaj = zamjenskiUredjaji[zamjenskiIndex];
                     uredjaji[pokvareniIndex] = zamjenskiUredjaj;
-                } while (pokvarenUredjaj.Naziv == zamjenskiUredjaj.Naziv);                
+                } while (pokvarenUredjaj.Naziv == zamjenskiUredjaj.Naziv);
 
                 return zamjenskiUredjaj;
             }
             return null;
+        }
+
+        public static bool DodajUredjajNaKraj(this Uredjaj[] uredjaji, Uredjaj uredjajZaDodati)
+        {
+            for (int i = 0; i < uredjaji.Length; i++)
+            {
+                if (uredjaji[i] == null)
+                {
+                    uredjaji[i] = uredjajZaDodati;
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
