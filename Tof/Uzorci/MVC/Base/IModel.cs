@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Tof.Logger;
 using Tof.Model;
 
@@ -46,8 +47,8 @@ namespace Tof.Uzorci.MVC
 
         public abstract void Izadji();
 
-        //TODO: osmisli funkcionalnost
-        public abstract void VlastitaFunkcionalnost();
+        //Provjera u 
+        public abstract void VlastitaFunkcionalnost(Uredjaj uredjaj);
 
         public abstract void IspisiPomoc();
 

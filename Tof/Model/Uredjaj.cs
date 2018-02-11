@@ -68,12 +68,26 @@ namespace Tof.Model
         /// <summary>
         /// Ako je vrijednost istinita onda ide od max prema min, vrijedi i obrat tvrdnje
         /// </summary>
-        public bool Obrnuto => TrenutnaVrijednost == Max;
+        public bool Obrnuto
+        {
+            get
+            {
+                if(TrenutnaVrijednost == Max) {
+                    _obrnuto = true;
+                }
+                if(TrenutnaVrijednost == Min)
+                {
+                    _obrnuto = false;
+                }
+                return _obrnuto;
+            }
+        }
 
         private int _neispravanZaRedom;
 
         private bool _jeIspravan = true;
         private bool _dosloDoPromjene;
+        private bool _obrnuto;
 
         public bool JeIspravan => _jeIspravan;
 
@@ -102,7 +116,7 @@ namespace Tof.Model
         public virtual void OdradiPosao()
         {
             _dosloDoPromjene = Math.Ceiling((new Random()).NextDouble() * 100) <= 90;
-            AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Vrijednost {0} je {1} {2}", Naziv, TrenutnaVrijednost, Komentar));
+            AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Vrijednost {0} je {1} {2} (ID: {3})", Naziv, TrenutnaVrijednost, Komentar, ExternalID));
         }
 
         public override RootElementPrototype Clone()

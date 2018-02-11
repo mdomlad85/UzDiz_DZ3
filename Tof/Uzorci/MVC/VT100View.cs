@@ -55,7 +55,7 @@ namespace Tof.Uzorci.MVC
 
         private string GetBoja(string linija)
         {
-            if (linija.Contains("DEBUG")) return ANSI_VT100_Konstante.Color.GIGI;
+            if (linija.Contains("DEBUG")) return ANSI_VT100_Konstante.Color.GREEN;
             if (linija.Contains("WARNING")) return ANSI_VT100_Konstante.Color.YELLOW;
             if (linija.Contains("ERROR")) return ANSI_VT100_Konstante.Color.RED;
 

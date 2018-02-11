@@ -39,6 +39,9 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.ComponentModel.Composition.Registration" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -63,6 +66,15 @@
     <Compile Include="Uzorci\Builder\TofSustavDirector.cs" />
     <Compile Include="Extensions\CollectionExtensions.cs" />
     <Compile Include="Extensions\FileExtensions.cs" />
+    <Compile Include="Uzorci\ChainOfResponsibility\Base\ExportHandlerAttribute.cs" />
+    <Compile Include="Uzorci\ChainOfResponsibility\Base\IRequestHandler.cs" />
+    <Compile Include="Uzorci\ChainOfResponsibility\Base\IRequest.cs" />
+    <Compile Include="Uzorci\ChainOfResponsibility\Base\IRequestHandlerMetadata.cs" />
+    <Compile Include="Uzorci\ChainOfResponsibility\Base\RequestHandlerGateway.cs" />
+    <Compile Include="Uzorci\ChainOfResponsibility\Staging\AktuatorRequest.cs" />
+    <Compile Include="Uzorci\ChainOfResponsibility\Staging\DangerHandler.cs" />
+    <Compile Include="Uzorci\ChainOfResponsibility\Staging\WarningHandler.cs" />
+    <Compile Include="Uzorci\ChainOfResponsibility\Staging\AllFineHandler.cs" />
     <Compile Include="Uzorci\FactoryMethod\Uredjaji\IUredjajAkcija.cs" />
     <Compile Include="Uzorci\FactoryMethod\Uredjaji\TofTvornicaUredjaja.cs" />
     <Compile Include="Uzorci\FactoryMethod\Uredjaji\TvornicaUredjaja.cs" />

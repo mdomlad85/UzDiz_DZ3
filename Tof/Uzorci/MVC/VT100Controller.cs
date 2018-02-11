@@ -79,7 +79,14 @@ namespace Tof.Uzorci.MVC
                     _model.IzvrsiNCiklusaDretve(naredba.Vrijednost, _tofSustav);
                     break;
                 case Akcija.VLASTITA_FUNKCIONALNOST:
-                    throw new NotImplementedException();
+                    var aktuator = _tofSustav.Aktuatori.Find(a => a.ExternalID == naredba.Vrijednost);
+                    if (aktuator != null)
+                    {
+                        _model.VlastitaFunkcionalnost(aktuator);
+                    } else
+                    {
+                        _model.IspisiPogresku(string.Format("Ne postoji aktuator s ID: {0}", naredba.Vrijednost));
+                    }
                     break;
                 case Akcija.PROSJECNA_ISPRAVNOST:
                     _model.PostaviPctIspravnostUredjaja(naredba.Vrijednost);

@@ -11,6 +11,8 @@ using System.Xml;
 using System.Xml.Serialization;
 using Tof.Model;
 using Tof.Uzorci.Builder;
+using Tof.Uzorci.ChainOfResponsibility;
+using Tof.Uzorci.ChainOfResponsibility.Staging;
 using Tof.Uzorci.Singleton;
 using Tof.Vendor;
 
@@ -144,7 +146,7 @@ namespace Tof.Uzorci.MVC
             _writer.Log("SP - spremi podatke (mjesta, uređaja)");
             _writer.Log("VP - vrati spremljene podatke (mjesta, uređaja)");
             _writer.Log("C n - izvršavanje n ciklusa dretve (1-100)");
-            _writer.Log("VF [argumenti] - izvršavanje vlastite funkcionalnosti, po potrebni mogući su argumenti");
+            _writer.Log("VF n - za aktuator s ID n provjeriti u kojoj je fazi vrijednosti");
             _writer.Log("PI n - prosječni % ispravnosti uređaja (0-100)");
             _writer.Log("H - pomoć, ispis dopuštenih komandi i njihov opis");
             _writer.Log("I - izlaz.");
@@ -156,9 +158,22 @@ namespace Tof.Uzorci.MVC
             sustav.Pokreni(this);
         }
 
-        public override void VlastitaFunkcionalnost()
+        public override void VlastitaFunkcionalnost(Uredjaj uredjaj)
         {
-            throw new NotImplementedException();
+            AplikacijskiPomagac.Instanca.Logger.Ocisti();
+            var request = new AktuatorRequest { Aktuator = uredjaj };
+            var gw = new RequestHandlerGateway();
+            if (!gw.HandleRequest(request))
+            {
+                _writer.Log("Ne postoji upravitelj trazenog zahtjeva!", Logger.VrstaLogZapisa.ERROR);
+            } else
+            {
+                foreach (var line in AplikacijskiPomagac.Instanca.Logger.PovijestLogiranja.ToArray())
+                {
+                    _writer.PovijestLogiranja.AppendLine(line);
+                }
+                AplikacijskiPomagac.Instanca.Logger.PovijestLogiranja.Clear();
+            }
             Notify();
         }
 
