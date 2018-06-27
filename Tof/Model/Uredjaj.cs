@@ -12,6 +12,7 @@ namespace Tof.Model
         public Vrsta Vrsta { get; set; }
 
         public string Komentar { get; set; }
+
         public List<Uredjaj> PovezaniUredjaji = new List<Uredjaj>();
 
         public Uredjaj() : base("Tof.Model.Uredjaj")
@@ -23,6 +24,7 @@ namespace Tof.Model
             try
             {
                 ID = int.Parse(attrs[0]);
+                ExternalID = ID;
                 Naziv = attrs[1];
                 Tip = (Tip)int.Parse(attrs[2]);
                 Vrsta = (Vrsta)int.Parse(attrs[3]);

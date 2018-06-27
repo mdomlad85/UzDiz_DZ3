@@ -29,28 +29,52 @@ namespace Tof.Uzorci.MVC
             var modelData = model.DohvatiLinije();
             foreach (var linija in modelData)
             {
-                Postavi(pozicija);
-                Izvrsi(GetBoja(linija), linija);
-                pozicija.X++;
-
-               if(pozicija.X >= Postavke.Instanca.BrojRedakaIspis - 1)
+                if (linija.Length > Postavke.Instanca.BrojStupaca)
                 {
-                    string input;
-                    do
+                    int start = 0;
+                    while (start < linija.Length)
                     {
-                        PostaviNaKrajReda();
-                        Izvrsi(ANSI_VT100_Konstante.Color.WHITE, string.Empty);
-                        Izvrsi("*", "UPopunjen je ekran. Za nastavak pristisnite n/N");
-                        input = Console.ReadLine();
-                    } while (!input.ToLower().Equals("n"));
-                    Izvrsi(ANSI_VT100_Konstante.Erase.ENTIRE_DISPLAY);
-                    pozicija.X = 1;
+                        Postavi(pozicija);
+                        var len = linija.Length - Postavke.Instanca.BrojStupaca < start ?
+                            linija.Length - start : Postavke.Instanca.BrojStupaca;
+
+                        Izvrsi(GetBoja(linija), linija.Substring(start, len));
+                        pozicija.X++;
+                        ProvjeriRedak(pozicija);
+                        PostaviNaPocetakReda();
+                        start += Postavke.Instanca.BrojStupaca;
+                    }
                 }
+                else
+                {
+                    Postavi(pozicija);
+                    Izvrsi(GetBoja(linija), linija);
+                    pozicija.X++;
+                    ProvjeriRedak(pozicija);
+                }
+                
             }
-            model._writer.Ocisti();
-            PostaviNaKrajReda();
+           model.Logger.Ocisti();
+            PostaviNaPocetakReda();
             Izvrsi(ANSI_VT100_Konstante.Color.WHITE, "Naredba: ");
             _controller.ObradiZahtjev(Console.ReadLine().Trim());
+        }
+
+        private void ProvjeriRedak(Point pozicija)
+        {
+            if (pozicija.X >= Postavke.Instanca.BrojRedakaIspis - 1)
+            {
+                string input;
+                do
+                {
+                    PostaviNaPocetakReda();
+                    Izvrsi(ANSI_VT100_Konstante.Color.WHITE, string.Empty);
+                    Izvrsi("*", "UPopunjen je ekran. Za nastavak pristisnite n/N");
+                    input = Console.ReadLine();
+                } while (!input.ToLower().Equals("n"));
+                Izvrsi(ANSI_VT100_Konstante.Erase.ENTIRE_DISPLAY);
+                pozicija.X = 1;
+            }
         }
 
         private string GetBoja(string linija)
@@ -62,7 +86,7 @@ namespace Tof.Uzorci.MVC
             return ANSI_VT100_Konstante.Color.WHITE;
         }
 
-        private void PostaviNaKrajReda()
+        private void PostaviNaPocetakReda()
         {
             Postavi(new Point { X = Postavke.Instanca.BrojRedakaIspis, Y = 1 });
         }

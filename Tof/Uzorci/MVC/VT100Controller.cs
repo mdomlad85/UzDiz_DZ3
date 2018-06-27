@@ -1,26 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using Tof.Uzorci.Builder;
+using Tof.Uzorci.Memento;
 using Tof.Uzorci.Singleton;
 
 namespace Tof.Uzorci.MVC
 {
     public class VT100Controller : IController
     {
-        public VT100Controller(IModel model) : base(model)
+        private TofCaretaker _tofCaretaker = new TofCaretaker();
+
+        public VT100Controller(IModel model, IView view) : base(model, view)
         {
             
         }
+
         public override void Inicijaliziraj(Postavke postavke)
         {
             AplikacijskiPomagac.Instanca.PostaviNasumicnjak(new Nasumicnjak.SistemskiNasumicnjak(postavke.Sjeme));
             MaticniPodaci.Ucitaj(postavke);
             var dzTofDirektor = new TofSustavDirector(new Dz3TofSustavBuilder(), postavke);
             dzTofDirektor.KreirajTofSustav();
-            _tofSustav = dzTofDirektor.TofSustav;
+            _model.TofState = dzTofDirektor.TofSustav;
+            //Eager creation of memento
+            _tofCaretaker.TofMemento = _model.CreateMemento();
             foreach (var line in AplikacijskiPomagac.Instanca.Logger.PovijestLogiranja.ToArray())
             {
-                _model._writer.PovijestLogiranja.AppendLine(line);
+                _model.Logger.PovijestLogiranja.AppendLine(line);
             }
             AplikacijskiPomagac.Instanca.Logger.PovijestLogiranja.Clear();
             _model.Notify();
@@ -35,7 +41,7 @@ namespace Tof.Uzorci.MVC
                 case Akcija.ISPIS_MJESTA:
                     try
                     {
-                        _model.IspisPodatakaMjesta(_tofSustav.Mjesta.Find(x => x.ID == naredba.Vrijednost));
+                        _model.IspisPodatakaMjesta(_model.TofState.Mjesta.Find(x => x.ID == naredba.Vrijednost));
                     }
                     catch
                     {
@@ -45,7 +51,7 @@ namespace Tof.Uzorci.MVC
                 case Akcija.ISPIS_SENZORA:
                     try
                     {
-                        _model.IspisPodatakaSenzora(_tofSustav.Senzori.Find(x => x.ExternalID == naredba.Vrijednost));
+                        _model.IspisPodatakaSenzora(_model.TofState.Senzori.Find(x => x.ID == naredba.Vrijednost || x.ExternalID == naredba.Vrijednost));
                     } catch
                     {
                         _model.IspisiPogresku(string.Format("Nema senzora s ID:{0}",naredba.Vrijednost));
@@ -54,7 +60,7 @@ namespace Tof.Uzorci.MVC
                 case Akcija.ISPIS_AKTUATORA:
                     try
                     {
-                        _model.IspisPodatakaAktuatora(_tofSustav.Aktuatori.Find(x => x.ExternalID == naredba.Vrijednost));
+                        _model.IspisPodatakaAktuatora(_model.TofState.Aktuatori.Find(x => x.ID == naredba.Vrijednost || x.ExternalID == naredba.Vrijednost));
                     }
                     catch
                     {
@@ -65,21 +71,20 @@ namespace Tof.Uzorci.MVC
                     _model.IspisStatistike();
                     break;
                 case Akcija.SPREMII_PODATKE:
-                    _model.SpremiPodatke(_tofSustav);
+                    _tofCaretaker.TofMemento = _model.CreateMemento();
+                    _model.Logger.Log("Spremanje uspješno");
+                    _model.Notify();
                     break;
                 case Akcija.VRATI_PODATKE:
-                    var podaci = _model.VratiSpremljenePodatke();
-                    if(podaci != null)
-                    {
-                        _tofSustav = podaci;
-                    }
+                    _model.SetMemento(_tofCaretaker.TofMemento);
+                    _model.Logger.Log("Vraćanje uspješno");
                     _model.Notify();
                     break;
                 case Akcija.CIKLUS_DRETVI:
-                    _model.IzvrsiNCiklusaDretve(naredba.Vrijednost, _tofSustav);
+                    _model.IzvrsiNCiklusaDretve(naredba.Vrijednost);
                     break;
                 case Akcija.VLASTITA_FUNKCIONALNOST:
-                    var aktuator = _tofSustav.Aktuatori.Find(a => a.ExternalID == naredba.Vrijednost);
+                    var aktuator = _model.TofState.Aktuatori.Find(a => a.ExternalID == naredba.Vrijednost);
                     if (aktuator != null)
                     {
                         _model.VlastitaFunkcionalnost(aktuator);

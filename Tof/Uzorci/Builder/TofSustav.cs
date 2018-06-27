@@ -125,7 +125,7 @@ namespace Tof.Uzorci.Builder
             AplikacijskiPomagac.Instanca.Statistika.ProsjecnoTrajanjeCiklusa /= Postavke.Instanca.BrojCiklusaDretve;
             foreach (var line in AplikacijskiPomagac.Instanca.Logger.PovijestLogiranja.ToArray())
             {
-                model._writer.PovijestLogiranja.AppendLine(line);
+               model.Logger.PovijestLogiranja.AppendLine(line);
             }
             AplikacijskiPomagac.Instanca.Logger.PovijestLogiranja.Clear();
             model.Notify();
@@ -151,9 +151,6 @@ namespace Tof.Uzorci.Builder
         {
             AplikacijskiPomagac.Instanca.Logger.Log("Počinje obrada mjesta...", VrstaLogZapisa.INFO);
             var startTime = DateTime.Now;
-            var maxAkt = _aktuatori.Max(a => a.ExternalID);
-            var maxSenz = _senzori.Max(s => s.ExternalID);
-            var max = maxAkt > maxSenz ? maxAkt : maxSenz;
 
             foreach (var mjesto in _mjesta)
             {
@@ -199,7 +196,6 @@ namespace Tof.Uzorci.Builder
                                 {
                                     AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Aktuator s ID {0} nije ispravan", aktuator.ExternalID), VrstaLogZapisa.ERROR);
                                     var noviUredjaj = (Uredjaj)aktuator.Clone();
-                                    noviUredjaj.ExternalID = ++max;
                                     noviUredjaj.Inicijaliziraj("Zamijena");
                                     _aktuatori.Add(noviUredjaj);
                                     mjesto.Aktuatori[j] = noviUredjaj;
@@ -213,7 +209,6 @@ namespace Tof.Uzorci.Builder
                     {
                         AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Senzor s ID {0} nije ispravan", senzor.ExternalID), VrstaLogZapisa.ERROR);
                         var noviUredjaj = (Uredjaj)senzor.Clone();
-                        noviUredjaj.ExternalID = ++max;
                         noviUredjaj.Inicijaliziraj("Zamijena");
                         _senzori.Add(noviUredjaj);
                         mjesto.Senzori[i] = noviUredjaj;
@@ -229,6 +224,10 @@ namespace Tof.Uzorci.Builder
             var diff = Postavke.TrajanjeDretveSek - totalSec;
             AplikacijskiPomagac.Instanca.Logger.Log(string.Format("...završila obrada svih mjesta nakon {0} sekundi", totalSec), VrstaLogZapisa.INFO);
             AplikacijskiPomagac.Instanca.Statistika.ProsjecnoTrajanjeCiklusa += diff;
+        }
+        public TofSustav Clone()
+        {
+            return (TofSustav)MemberwiseClone();
         }
     }
 }

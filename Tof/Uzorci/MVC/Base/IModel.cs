@@ -1,15 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Tof.Logger;
 using Tof.Model;
+using Tof.Uzorci.Builder;
+using Tof.Uzorci.Memento;
 
 namespace Tof.Uzorci.MVC
 {
     public abstract class IModel
     {
-        public ILogger _writer = new TofLogger();
+        protected ILogger _writer = new TofLogger();
+
+        private TofSustav _tofSustav;
 
         public List<IView> _observers = new List<IView>();
+
+        public ILogger Logger { get { return _writer; } set { _writer = value; } }
 
         public virtual void AddObserver(IView view)
         {
@@ -29,6 +34,29 @@ namespace Tof.Uzorci.MVC
             }
         }
 
+        // Memento polje
+        public TofSustav TofState
+        {
+            get { return _tofSustav; }
+            set
+
+            {
+                _tofSustav = value;
+            }
+        }
+
+        // Kreiranje mementa
+        public TofMemento CreateMemento()
+        {
+            return new TofMemento(_tofSustav.Clone());
+        }
+
+        // vraćanje starog stanja
+        public void SetMemento(TofMemento memento)
+        {
+            _tofSustav = memento.TofState;
+        }
+
         public abstract void IspisPodatakaMjesta(Mjesto mjesto);
 
         public abstract void IspisPodatakaSenzora(Uredjaj senzor);
@@ -37,11 +65,7 @@ namespace Tof.Uzorci.MVC
 
         public abstract void IspisStatistike();
 
-        public abstract void SpremiPodatke(Builder.TofSustav sustav);
-
-        public abstract Builder.TofSustav VratiSpremljenePodatke();
-
-        public abstract void IzvrsiNCiklusaDretve(int brojCiklusa, Builder.TofSustav sustav);
+        public abstract void IzvrsiNCiklusaDretve(int brojCiklusa);
 
         public abstract void PostaviPctIspravnostUredjaja(int pct);
 

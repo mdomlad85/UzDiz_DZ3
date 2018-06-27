@@ -7,16 +7,17 @@ namespace Tof.Pomagaci
     {
         internal static Postavke GetOptions(string[] args)
         {
-            var options = new Postavke();
             Action<ParserSettings> parserAction = ParserAction;
             Parser parser = new Parser(parserAction);
-            parser.ParseArgumentsStrict(args.ConvertArgsFlags(), options);
+            parser.ParseArgumentsStrict(args.ConvertArgsFlags(), Postavke.Instanca);
 
-            if (!options.JesuPostavkeIspravne())
+            if (!Postavke.Instanca.JesuPostavkeIspravne())
             {
                 throw new Iznimke.NeispravniUlazniArgumenti();
             }
-            return options;
+            Postavke.Instanca.InicijalizirajOpcionalnePostavke();
+
+            return Postavke.Instanca;
         }
         static void ParserAction(ParserSettings settings)
         {

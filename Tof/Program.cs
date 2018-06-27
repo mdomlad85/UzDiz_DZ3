@@ -20,7 +20,7 @@ namespace Tof
                 var model = new VT100Model();
                 var view = new VT100View();
                 model.AddObserver(view);
-                var ctrl = new VT100Controller(model);
+                var ctrl = new VT100Controller(model, view);
                 view.SetController(ctrl);
                 ctrl.Inicijaliziraj(postavke);
             }

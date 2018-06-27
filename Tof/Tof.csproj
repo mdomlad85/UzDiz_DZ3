@@ -96,6 +96,8 @@
     <Compile Include="Uzorci\Iterator\ApstraktniIterator.cs" />
     <Compile Include="Uzorci\Iterator\Mjesta\IteratorMjesta.cs" />
     <Compile Include="Uzorci\Iterator\Mjesta\KolekcijaMjesta.cs" />
+    <Compile Include="Uzorci\Memento\TofCaretaker.cs" />
+    <Compile Include="Uzorci\Memento\TofMemento.cs" />
     <Compile Include="Uzorci\MVC\Base\IController.cs" />
     <Compile Include="Uzorci\MVC\Base\IModel.cs" />
     <Compile Include="Uzorci\MVC\Base\IView.cs" />

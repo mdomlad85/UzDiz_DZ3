@@ -1,26 +1,16 @@
 ﻿using CommandLine;
-using CommandLine.Text;
 using System;
 using System.IO;
-using Tof.Uzorci.FactoryMethod;
-using Tof.Nasumicnjak;
-using Tof.Uzorci.Singleton;
 
 namespace Tof
 {
     [Serializable]
     public class Postavke
     {
+        #region Svojstva
+
         public const string CREATOR = "mdomladov_";
-        public Postavke()
-        {
-            BrojRedaka = 24;
-            BrojStupaca = 80;
-            BrojRedakaKomandi = 2;
-            ProsjecnaIspravnost = 50;
-            Sjeme = DateTime.Now.Millisecond + DateTime.Now.Second * 1000;
-            TrajanjeDretveSek = (new Random()).Next(1, 17);
-        }
+        public int BrojCiklusaDretve { get; set; }
 
         public int BrojRedakaIspis => BrojRedaka - BrojRedakaKomandi;
 
@@ -64,6 +54,10 @@ namespace Tof
          HelpText = "trajanje ciklusa dretve u sek. Ako nije upisana opcija, uzima se slučajni broj u intervalu 1 - 17.")]
         public int TrajanjeDretveSek { get; set; }
 
+        #endregion
+
+        #region Helper metode
+
         public bool JesuPostavkeIspravne()
         {
             return FilesExists(DatotekaAktuatora, DatotekaMjesta, DatotekaSenzora, DatotekaRasporeda);
@@ -81,10 +75,23 @@ namespace Tof
             return true;
         }
 
+        public void InicijalizirajOpcionalnePostavke()
+        {
+            if (BrojRedaka < 24) BrojRedaka = 24;
+            if (BrojStupaca < 80) BrojStupaca = 80;
+            if (BrojRedakaKomandi < 2) BrojRedakaKomandi = 2;
+            if (ProsjecnaIspravnost < 50) ProsjecnaIspravnost = 50;
+            if (Sjeme <= 0) Sjeme = DateTime.Now.Millisecond + DateTime.Now.Second * 1000;
+            if (TrajanjeDretveSek <= 0) TrajanjeDretveSek = (new Random()).Next(1, 17);
+        }
+
+        #endregion
+
+        #region Singleton implementacija
+
         private static object staticSyncLock = new object();
 
         private static Postavke _instanca;
-
         public static Postavke Instanca
         {
             get
@@ -105,6 +112,7 @@ namespace Tof
             }
 
         }
-        public int BrojCiklusaDretve { get; set; }
+
+        #endregion
     }
 }

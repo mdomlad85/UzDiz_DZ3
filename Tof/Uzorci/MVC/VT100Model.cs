@@ -1,16 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Serialization;
 using Tof.Model;
-using Tof.Uzorci.Builder;
 using Tof.Uzorci.ChainOfResponsibility;
 using Tof.Uzorci.ChainOfResponsibility.Staging;
 using Tof.Uzorci.Singleton;
@@ -23,22 +13,25 @@ namespace Tof.Uzorci.MVC
         public override void IspisPodatakaAktuatora(Uredjaj aktuator)
         {
             _writer.Ocisti(); 
-            _writer.Log(string.Format("Informacije o aktuatoru s ID:{0}", aktuator.ExternalID));
+            _writer.Log(string.Format("Informacije o aktuatoru s ID:{0}", aktuator.ID));
             _writer.Log(string.Format("Naziv:{0}", aktuator.Naziv));
             _writer.Log(string.Format("Tip:{0}", Enum.GetName(typeof(Tip), aktuator.Tip)));
             _writer.Log(string.Format("Vrsta:{0}", Enum.GetName(typeof(Vrsta), aktuator.Vrsta)));
             _writer.Log(string.Format("Trenutna Vrijednost:{0}", aktuator.TrenutnaVrijednost));
             _writer.Log(string.Format("Komentar:{0}", aktuator.Komentar));
             _writer.Log(string.Format("MjestoID: {0}", aktuator.MjestoID));
-            _writer.Log(string.Format("Broj povezanih senzora:{0}", aktuator.PovezaniUredjaji.Count()));
+            _writer.Log(string.Format("Broj povezanih senzora:{0}", aktuator.PovezaniUredjaji.Where(s => s != null).Count()));
             foreach (var senzor in aktuator.PovezaniUredjaji)
             {
-                _writer.Log(string.Format("--Informacije o senzoru s ID:{0}", senzor.ExternalID));
-                _writer.Log(string.Format("--Naziv:{0}", senzor.Naziv));
-                _writer.Log(string.Format("--Tip:{0}", Enum.GetName(typeof(Tip), senzor.Tip)));
-                _writer.Log(string.Format("--Vrsta:{0}", Enum.GetName(typeof(Vrsta), senzor.Vrsta)));
-                _writer.Log(string.Format("--Trenutna Vrijednost:{0}", senzor.TrenutnaVrijednost));
-                _writer.Log(string.Format("--Komentar:{0}", senzor.Komentar));
+                if (senzor != null)
+                {
+                    _writer.Log(string.Format("--Informacije o senzoru s ID:{0}", senzor.ExternalID));
+                    _writer.Log(string.Format("--Naziv:{0}", senzor.Naziv));
+                    _writer.Log(string.Format("--Tip:{0}", Enum.GetName(typeof(Tip), senzor.Tip)));
+                    _writer.Log(string.Format("--Vrsta:{0}", Enum.GetName(typeof(Vrsta), senzor.Vrsta)));
+                    _writer.Log(string.Format("--Trenutna Vrijednost:{0}", senzor.TrenutnaVrijednost));
+                    _writer.Log(string.Format("--Komentar:{0}", senzor.Komentar));
+                }
             }
             Notify();
         }
@@ -48,11 +41,14 @@ namespace Tof.Uzorci.MVC
             _writer.Log(string.Format("Informacije o mjestu s ID:{0}", mjesto.ID));
             _writer.Log(string.Format("Naziv:{0}", mjesto.Naziv));
             _writer.Log(string.Format("Tip:{0}", Enum.GetName(typeof(Tip), mjesto.Tip)));
-            _writer.Log(string.Format("Broj povezanih senzora:{0}", mjesto.Senzori.Count()));
+            _writer.Log(string.Format("Broj povezanih senzora:{0}", mjesto.Senzori.Where(s => s != null).Count()));
             foreach (var senzor in mjesto.Senzori)
             {
-                _writer.Log(string.Format("--ID:{0}", senzor.ExternalID));
-                _writer.Log(string.Format("--Naziv:{0}", senzor.Naziv));
+                if (senzor != null)
+                {
+                    _writer.Log(string.Format("--ID:{0}", senzor.ExternalID));
+                    _writer.Log(string.Format("--Naziv:{0}", senzor.Naziv));
+                }
             }
             Notify();
         }
@@ -101,41 +97,6 @@ namespace Tof.Uzorci.MVC
                 _writer.Log(string.Format("Prosječna ispravnost mora biti između 1 i 100. Vi ste unijeli {0}", pct));
             }
         }
-        public override void SpremiPodatke(TofSustav sustav)
-        {
-            _writer.Ocisti();
-            try
-            {
-                using (Stream stream = new FileStream(FILE_NAME, FileMode.Create, FileAccess.Write, FileShare.None))
-                {
-                    formatter.Serialize(stream, sustav);
-                }
-                _writer.Log("Podaci su uspješno spremljeni.");
-            }
-            catch
-            {
-                _writer.Log("Podaci nisu uspješno spremljeni.");
-            }
-            Notify();
-        }
-        public override TofSustav VratiSpremljenePodatke()
-        {
-            _writer.Ocisti();
-            try
-            {
-                using (Stream stream = new FileStream(FILE_NAME, FileMode.Open, FileAccess.Read, FileShare.Read))
-                {
-                    var data = (TofSustav)formatter.Deserialize(stream);
-                    _writer.Log("Podaci su uspješno učitani.");
-                    return data;
-                }                
-            }
-            catch
-            {
-                _writer.Log("Podaci nisu uspješno učitani.");
-                return null;
-            }
-        }
         public override void IspisiPomoc()
         {
             _writer.Ocisti();
@@ -152,10 +113,10 @@ namespace Tof.Uzorci.MVC
             _writer.Log("I - izlaz.");
             Notify();
         }
-        public override void IzvrsiNCiklusaDretve(int brojCiklusa, TofSustav sustav)
+        public override void IzvrsiNCiklusaDretve(int brojCiklusa)
         {
             Postavke.Instanca.BrojCiklusaDretve = brojCiklusa;
-            sustav.Pokreni(this);
+            TofState.Pokreni(this);
         }
 
         public override void VlastitaFunkcionalnost(Uredjaj uredjaj)
@@ -165,7 +126,7 @@ namespace Tof.Uzorci.MVC
             var gw = new RequestHandlerGateway();
             if (!gw.HandleRequest(request))
             {
-                _writer.Log("Ne postoji upravitelj trazenog zahtjeva!", Logger.VrstaLogZapisa.ERROR);
+                _writer.Log("Ne postoji upravitelj trazenog zahtjeva!", Tof.Logger.VrstaLogZapisa.ERROR);
             } else
             {
                 foreach (var line in AplikacijskiPomagac.Instanca.Logger.PovijestLogiranja.ToArray())
@@ -176,9 +137,5 @@ namespace Tof.Uzorci.MVC
             }
             Notify();
         }
-
-        private string FILE_NAME = "sustav.bin";
-
-        private IFormatter formatter = new BinaryFormatter();
     }
 }

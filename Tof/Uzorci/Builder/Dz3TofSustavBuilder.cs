@@ -99,7 +99,7 @@ namespace Tof.Uzorci.Builder
                     }
                 }
             }
-            AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Nepostojeći senzori za aktuator ID: {0}", raspored.IDAktuatora, VrstaLogZapisa.INFO));
+            AplikacijskiPomagac.Instanca.Logger.Log(string.Format("Nepostojeći ili iskorišteni senzor/i za aktuator ID: {0}", raspored.IDAktuatora, VrstaLogZapisa.INFO));
         }
 
         private void UcitajRasporedZaMjesto(RasporedUredjajaPoMjestima raspored)
